@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITableViewDataSource{
+class ViewController: UIViewController, UITableViewDataSource {
 
     final let urlString = "http://www.mocky.io/v2/57cffac8260000181e650041"
     
@@ -37,10 +37,10 @@ class ViewController: UIViewController, UITableViewDataSource{
         let url = NSURL(string: urlString)
         URLSession.shared.dataTask(with: (url! as URL), completionHandler: {(data, response, error) -> Void in
             
-            if let jsonObj = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as? NSDictionary {
-                print(jsonObj!.value(forKey: "list"))
+            if let jsonObj = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSDictionary {
+                print(jsonObj.value(forKey: "list")!)
                 
-                if let listArray = jsonObj?.value(forKey: "list") as? NSArray {
+                if let listArray = jsonObj.value(forKey: "list") as? NSArray {
                     for item in listArray {
                         if let itemDict = item as? NSDictionary {
                             if let name = itemDict.value(forKey: "name") {
@@ -71,14 +71,14 @@ class ViewController: UIViewController, UITableViewDataSource{
 
     func downloadJsonWithTask() {
         let url = NSURL(string: urlString)
-        var downloadTsk = URLRequest(url: (url as? URL)!, cachePolicy: URLRequest.CachePolicy.reloadIgnoringCacheData, timeoutInterval: 20)
+        var downloadTsk = URLRequest(url: (url as URL?)!, cachePolicy: URLRequest.CachePolicy.reloadIgnoringCacheData, timeoutInterval: 20)
         
         downloadTsk.httpMethod = "GET"
         
         URLSession.shared.dataTask(with: downloadTsk, completionHandler: {(data, response, error) -> Void in
             let jsonData = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments)
             
-            print(jsonData)
+            print(jsonData!)
         }).resume()
     }
     
@@ -87,7 +87,7 @@ class ViewController: UIViewController, UITableViewDataSource{
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell{
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TabelViewCell") as! TableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") as! TableViewCell
         cell.nameLabel.text = nameArray[indexPath.row]
         cell.name_engLabel.text = name_engArray[indexPath.row]
         cell.premiereLabel.text = premiereArray[indexPath.row]
@@ -95,11 +95,22 @@ class ViewController: UIViewController, UITableViewDataSource{
         
         let imgURL = NSURL(string: imgURLArray[indexPath.row])
         if imgURL != nil {
-            let data = NSData(contentsOf: (imgURL as? URL)!)
+            let data = NSData(contentsOf: (imgURL as URL?)!)
             
-            cell.imgView.image = UIImage(data: data as! Data)
+            cell.imgView.image = UIImage(data: data! as Data)
         }
         return cell
+    }
+    
+    //showing detail info screen
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        let vc = self.storyboard!.instantiateViewController(withIdentifier: "DetailsVC") as! DetailsVC
+        vc.imageString = imgURLArray[indexPath.row]
+        vc.nameString = nameArray[indexPath.row]
+        vc.descriptionString = descriptionArray[indexPath.row]
+        
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
 }
